@@ -115,9 +115,10 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                         call.argument(BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS)
                     )
                 }
+                val useHardwareDecoders = call.argument<Boolean>("useHardwareDecoders") ?: true
                 val player = BetterPlayer(
                     flutterState?.applicationContext!!, eventChannel, handle,
-                    customDefaultLoadControl, result
+                    customDefaultLoadControl, useHardwareDecoders, result
                 )
                 videoPlayers.put(handle.id(), player)
             }

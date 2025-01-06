@@ -42,6 +42,7 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
           'bufferForPlaybackMs': bufferingConfiguration.bufferForPlaybackMs,
           'bufferForPlaybackAfterRebufferMs':
               bufferingConfiguration.bufferForPlaybackAfterRebufferMs,
+          'useHardwareDecoders': bufferingConfiguration.useHardwareDecoders,
         },
       );
 

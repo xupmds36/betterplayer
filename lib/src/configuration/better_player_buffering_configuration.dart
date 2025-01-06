@@ -1,8 +1,8 @@
-///Configuration class used to setup better buffering experience or setup custom
-///load settings. Currently used only in Android.
+/// Configuration class used to setup better buffering experience or setup custom
+/// load settings. Currently used only in Android.
 class BetterPlayerBufferingConfiguration {
-  ///Constants values are from the offical exoplayer documentation
-  ///https://exoplayer.dev/doc/reference/constant-values.html#com.google.android.exoplayer2.DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS
+  /// Constants values are from the official ExoPlayer documentation
+  /// https://exoplayer.dev/doc/reference/constant-values.html#com.google.android.exoplayer2.DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS
   static const defaultMinBufferMs = 25000;
   static const defaultMaxBufferMs = 6553600;
   static const defaultBufferForPlaybackMs = 3000;
@@ -25,11 +25,15 @@ class BetterPlayerBufferingConfiguration {
   /// buffer depletion rather than a user action.
   final int bufferForPlaybackAfterRebufferMs;
 
+  /// A flag indicating whether to use hardware decoders.
+  final bool useHardwareDecoders;
+
   const BetterPlayerBufferingConfiguration({
     this.minBufferMs = defaultMinBufferMs,
     this.maxBufferMs = defaultMaxBufferMs,
     this.bufferForPlaybackMs = defaultBufferForPlaybackMs,
     this.bufferForPlaybackAfterRebufferMs =
         defaultBufferForPlaybackAfterRebufferMs,
+    this.useHardwareDecoders = true, // 默认开启硬件解码
   });
 }

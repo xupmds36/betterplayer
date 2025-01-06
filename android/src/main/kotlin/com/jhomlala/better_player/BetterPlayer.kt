@@ -68,12 +68,17 @@ import java.lang.IllegalStateException
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
+import com.google.android.exoplayer2.mediacodec.MediaCodecInfo
+import com.google.android.exoplayer2.mediacodec.MediaCodecSelector
+import com.google.android.exoplayer2.util.MimeTypes
+import com.google.android.exoplayer2.RenderersFactory
 
 internal class BetterPlayer(
     context: Context,
     private val eventChannel: EventChannel,
     private val textureEntry: SurfaceTextureEntry,
     customDefaultLoadControl: CustomDefaultLoadControl?,
+    useHardwareDecoders: Boolean,
     result: MethodChannel.Result
 ) {
     private val exoPlayer: ExoPlayer?
@@ -108,10 +113,42 @@ internal class BetterPlayer(
         exoPlayer = ExoPlayer.Builder(context)
             .setTrackSelector(trackSelector)
             .setLoadControl(loadControl)
+            .setRenderersFactory(buildRenderersFactory(context, useHardwareDecoders))
             .build()
         workManager = WorkManager.getInstance(context)
         workerObserverMap = HashMap()
         setupVideoPlayer(eventChannel, textureEntry, result)
+    }
+
+    fun buildRenderersFactory(context: Context, useHardwareDecoders: Boolean): RenderersFactory {
+        return DefaultRenderersFactory(context).apply {
+            setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
+            setMediaCodecSelector { mimeType, requiresSecureDecoder, requiresTunnelingDecoder ->
+                val allDecoders = MediaCodecSelector.DEFAULT.getDecoderInfos(
+                    mimeType, requiresSecureDecoder, requiresTunnelingDecoder
+                )
+                val filteredDecoders = if (useHardwareDecoders) {
+                    allDecoders.filter { 
+                        it.name.startsWith("OMX.", ignoreCase = true) && it.name.startsWith("OMX.google.", ignoreCase = false).not() ||
+                        it.name.startsWith("c2.", ignoreCase = true) && it.name.startsWith("c2.android.", ignoreCase = false).not()
+                    }
+                } else {
+                    allDecoders.filter { 
+                        it.name.startsWith("OMX.google.", ignoreCase = true) ||
+                        it.name.startsWith("c2.android.", ignoreCase = true) ||
+                        it.name.startsWith("OMX.", ignoreCase = true).not() &&
+                        it.name.startsWith("c2.", ignoreCase = true).not()
+                    }
+                }
+                if (filteredDecoders.isEmpty()) {
+                    Log.w("RenderersFactory", "No suitable decoders found for mimeType: $mimeType. Using all decoders.")
+                    allDecoders
+                } else {
+                    Log.d("RenderersFactory", "Using ${filteredDecoders.size} filtered decoders for mimeType = $mimeType.")
+                    filteredDecoders
+                }
+            }
+        }
     }
 
     fun setDataSource(
